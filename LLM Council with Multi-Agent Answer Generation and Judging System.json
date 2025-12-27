@@ -1,0 +1,765 @@
+{
+  "name": "LLM Council with Multi-Agent Answer Generation and Judging System",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "4c8c418a-02f7-4b8b-83ae-044bba14d13b",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        1848
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "question",
+              "value": "<__PLACEHOLDER_VALUE__Question for the council to answer__>",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "safetyKeywords",
+              "value": "harmful,illegal,dangerous,unethical",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "evaluationRubric",
+              "value": "Accuracy: How factually correct is the answer?\nClarity: How well-explained is the answer?\nCompleteness: Does it address all aspects?\nReliability: Are sources cited?",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "1791ccab-6bd3-4e58-b9a9-5d3dbb14b48c",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        1848
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $('Workflow Configuration').item.json.question }}",
+              "rightValue": "={{ $('Workflow Configuration').item.json.safetyKeywords }}",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e3d88a6f-ff80-4b5e-9c64-7b954e7b090b",
+      "name": "Safety Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -272,
+        1848
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.question }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Agent 1, an expert analyst. Your task is to provide a comprehensive, well-researched answer to the question. Include specific facts, reasoning, and cite sources where possible. Be thorough and accurate."
+        }
+      },
+      "id": "f6515573-7c0f-4e73-ad46-15566337702a",
+      "name": "Agent 1 - Answer Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.question }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Agent 2, a critical thinker. Your task is to provide an independent answer to the question. Challenge assumptions, consider alternative perspectives, and provide evidence-based reasoning. Cite your sources."
+        }
+      },
+      "id": "2f56961b-1acf-4985-b26c-a4631298043a",
+      "name": "Agent 2 - Answer Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        1744
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.question }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Agent 3, a practical problem-solver. Your task is to provide a clear, actionable answer to the question. Focus on real-world applicability and concrete examples. Include citations to support your claims."
+        }
+      },
+      "id": "91e2ba5f-e3d3-42e4-9df8-b1be8586fafa",
+      "name": "Agent 3 - Answer Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        2248
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "7bd05111-3bac-43cc-b235-451d62ed380f",
+      "name": "OpenAI Model - Agent 1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -40,
+        1568
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "XFYhh7Q5aGvne994",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "889a3200-a97d-4a2b-967e-7a0adb120489",
+      "name": "OpenAI Model - Agent 2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -40,
+        1968
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "XFYhh7Q5aGvne994",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "e6af4319-882a-4176-b924-164d7d24df8a",
+      "name": "OpenAI Model - Agent 3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -40,
+        2472
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "XFYhh7Q5aGvne994",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"answer\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"The answer to the question\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"The reasoning behind the answer\"\n\t\t},\n\t\t\"citations\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"description\": \"Citations supporting the answer\"\n\t\t},\n\t\t\"confidence\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"minimum\": 0,\n\t\t\t\"maximum\": 100,\n\t\t\t\"description\": \"Confidence level from 0 to 100\"\n\t\t}\n\t},\n\t\"required\": [\"answer\", \"reasoning\", \"citations\", \"confidence\"]\n}"
+      },
+      "id": "c959d656-d350-4267-b190-1a3f159256d3",
+      "name": "Answer Parser - Agent 1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        88,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"answer\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"citations\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t},\n\t\t\"confidence\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"minimum\": 0,\n\t\t\t\"maximum\": 100\n\t\t}\n\t}\n}"
+      },
+      "id": "8944e0fc-f2bc-4e3e-944b-569cc06ddc41",
+      "name": "Answer Parser - Agent 2",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        88,
+        1968
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"answer\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"The answer to the question\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"The reasoning behind the answer\"\n\t\t},\n\t\t\"citations\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"description\": \"Citations supporting the answer\"\n\t\t},\n\t\t\"confidence\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"minimum\": 0,\n\t\t\t\"maximum\": 100,\n\t\t\t\"description\": \"Confidence level from 0 to 100\"\n\t\t}\n\t},\n\t\"required\": [\"answer\", \"reasoning\", \"citations\", \"confidence\"]\n}"
+      },
+      "id": "1a52abc5-b16f-454f-855a-0b7ee8bbbf8d",
+      "name": "Answer Parser - Agent 3",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        88,
+        2472
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "6030d350-0071-466e-b830-ecadbd42df1b",
+      "name": "Combine Agent Answers",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        304,
+        1848
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Question: {{ $json.question }}\n\nAgent Answers:\n{{ JSON.stringify($json.answer) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are Judge 1, an impartial evaluator. Your task is to compare the three agent answers using this rubric:\n\n{{ $json.evaluationRubric }}\n\nDo NOT generate new answers. Only evaluate and compare the existing answers. Score each answer on each criterion (1-10). Identify strengths and weaknesses."
+        }
+      },
+      "id": "0770107b-fa36-4150-8a10-0c41886714b4",
+      "name": "Judge 1 - Evaluator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        528,
+        1544
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Question: {{ $json.question }}\n\nAgent Answers:\n{{ JSON.stringify($json.answer) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are Judge 2, an independent evaluator. Your task is to assess the three agent answers using this rubric:\n\n{{ $json.evaluationRubric }}\n\nDo NOT generate new answers. Only evaluate and compare what was provided. Rate each answer on each criterion (1-10). Provide objective analysis."
+        }
+      },
+      "id": "7dd0a494-88df-4857-8329-4b21c7179aad",
+      "name": "Judge 2 - Evaluator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        528,
+        2048
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "aa246747-8f32-4f9a-b293-ab6ede8707e9",
+      "name": "OpenAI Model - Judge 1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        536,
+        1768
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "XFYhh7Q5aGvne994",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "7349cd84-9d12-4eb9-86b9-60f9d412959a",
+      "name": "OpenAI Model - Judge 2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        536,
+        2272
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "XFYhh7Q5aGvne994",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"bestAnswerIndex\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"description\": \"Index of the best answer (0-2)\",\n\t\t\t\"minimum\": 0,\n\t\t\t\"maximum\": 2\n\t\t},\n\t\t\"scores\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"object\",\n\t\t\t\t\"properties\": {\n\t\t\t\t\t\"agentIndex\": {\n\t\t\t\t\t\t\"type\": \"number\"\n\t\t\t\t\t},\n\t\t\t\t\t\"score\": {\n\t\t\t\t\t\t\"type\": \"number\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t\"strengths\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t},\n\t\t\"weaknesses\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t},\n\t\t\"recommendation\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
+      },
+      "id": "e8dbc824-02ce-496d-81c5-5982c2e494bb",
+      "name": "Judgment Parser - Judge 1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        664,
+        1768
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"bestAnswerIndex\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"description\": \"Index of the best answer (0-2)\",\n\t\t\t\"minimum\": 0,\n\t\t\t\"maximum\": 2\n\t\t},\n\t\t\"scores\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"object\",\n\t\t\t\t\"properties\": {\n\t\t\t\t\t\"agentIndex\": {\n\t\t\t\t\t\t\"type\": \"number\"\n\t\t\t\t\t},\n\t\t\t\t\t\"score\": {\n\t\t\t\t\t\t\"type\": \"number\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t\"strengths\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t},\n\t\t\"weaknesses\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t},\n\t\t\"recommendation\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
+      },
+      "id": "135545c6-b172-4be2-9db4-23e7ff0140d0",
+      "name": "Judgment Parser - Judge 2",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        664,
+        2272
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "f6a5b852-9f21-43ef-bab9-a5c67cdb3d74",
+      "name": "Combine Judge Evaluations",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        1848
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Decision Object from Judge Evaluations\nconst items = $input.all();\n\n// Check there are at least 2 input items (judges)\nif (items.length < 2) {\n  throw new Error('Expected at least 2 judge evaluations as input.');\n}\nconst judge1 = items[0].json;\nconst judge2 = items[1].json;\n\n// Calculate average confidence\nconst confidence1 = judge1.confidence || 0;\nconst confidence2 = judge2.confidence || 0;\nconst averageConfidence = (confidence1 + confidence2) / 2;\n\n// Identify consensus\nconst selectedAnswer1 = judge1.selected_answer || judge1.selectedAnswer;\nconst selectedAnswer2 = judge2.selected_answer || judge2.selectedAnswer;\nconst hasConsensus = selectedAnswer1 === selectedAnswer2;\nconst consensusAnswer = hasConsensus ? selectedAnswer1 : null;\n\n// Extract risks from weaknesses\nconst risks = [];\nif (judge1.weaknesses) {\n  risks.push(...(Array.isArray(judge1.weaknesses) ? judge1.weaknesses : [judge1.weaknesses]));\n}\nif (judge2.weaknesses) {\n  risks.push(...(Array.isArray(judge2.weaknesses) ? judge2.weaknesses : [judge2.weaknesses]));\n}\n\n// Aggregate all citations from agents\nconst allCitations = [];\nconst agents = $('Combine Agent Answers').all();\n\nfor (const agent of agents) {\n  if (agent.json.citations) {\n    const citations = Array.isArray(agent.json.citations) ? agent.json.citations : [agent.json.citations];\n    allCitations.push(...citations);\n  }\n}\n\n// Remove duplicate citations\nconst uniqueCitations = [...new Set(allCitations)];\n\n// Build the decision object\nconst decisionObject = {\n  consensus: hasConsensus,\n  selected_answer: consensusAnswer,\n  average_confidence: averageConfidence,\n  judge_evaluations: {\n    judge1: {\n      selected_answer: selectedAnswer1,\n      confidence: confidence1,\n      reasoning: judge1.reasoning || '',\n      strengths: judge1.strengths || [],\n      weaknesses: judge1.weaknesses || []\n    },\n    judge2: {\n      selected_answer: selectedAnswer2,\n      confidence: confidence2,\n      reasoning: judge2.reasoning || '',\n      strengths: judge2.strengths || [],\n      weaknesses: judge2.weaknesses || []\n    }\n  },\n  identified_risks: risks,\n  all_citations: uniqueCitations,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: decisionObject }];"
+      },
+      "id": "8bd4d970-74aa-408a-a450-aa037cbc040f",
+      "name": "Build Decision Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        1848
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<__PLACEHOLDER_VALUE__Google Sheets Document ID__>"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Audit Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "question": "={{ $json.question }}",
+            "decision": "={{ $json.decision }}",
+            "confidence": "={{ $json.confidence }}",
+            "risks": "={{ $json.risks }}",
+            "citations": "={{ $json.citations }}"
+          },
+          "matchingColumns": [
+            "timestamp"
+          ],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "decision",
+              "displayName": "decision",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "confidence",
+              "displayName": "confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "risks",
+              "displayName": "risks",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "citations",
+              "displayName": "citations",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "31488412-36c4-4b7c-b287-cd6e0dcc24ee",
+      "name": "Audit Log - Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1328,
+        1848
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "h4Cw7ewfTKyXDZqE",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Safety Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Safety Gate": {
+      "main": [
+        [
+          {
+            "node": "Agent 1 - Answer Generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 2 - Answer Generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 3 - Answer Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Agent 1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent 1 - Answer Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Agent 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent 2 - Answer Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Agent 3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent 3 - Answer Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Parser - Agent 1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent 1 - Answer Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Parser - Agent 2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent 2 - Answer Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Parser - Agent 3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent 3 - Answer Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1 - Answer Generator": {
+      "main": [
+        [
+          {
+            "node": "Combine Agent Answers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 2 - Answer Generator": {
+      "main": [
+        [
+          {
+            "node": "Combine Agent Answers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 3 - Answer Generator": {
+      "main": [
+        [
+          {
+            "node": "Combine Agent Answers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Agent Answers": {
+      "main": [
+        [
+          {
+            "node": "Judge 1 - Evaluator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Judge 2 - Evaluator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Judge 1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Judge 1 - Evaluator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Judge 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Judge 2 - Evaluator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Judgment Parser - Judge 1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Judge 1 - Evaluator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Judgment Parser - Judge 2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Judge 2 - Evaluator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Judge 1 - Evaluator": {
+      "main": [
+        [
+          {
+            "node": "Combine Judge Evaluations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Judge 2 - Evaluator": {
+      "main": [
+        [
+          {
+            "node": "Combine Judge Evaluations",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combine Judge Evaluations": {
+      "main": [
+        [
+          {
+            "node": "Build Decision Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Decision Object": {
+      "main": [
+        [
+          {
+            "node": "Audit Log - Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "586628ff-aa17-477a-9196-1f4b060036f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8dd5f0dde0c91c1ea4079af0da83c253193d9ff0f16531a3669e4f94d632b582"
+  },
+  "id": "WoFwg8OoHdB94zS5",
+  "tags": []
+}
